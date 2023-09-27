@@ -1,11 +1,11 @@
 package ru.vsu.cs.edryshov_ad.elements.house;
 
-import ru.vsu.cs.edryshov_ad.elements.DrawElement;
+import ru.vsu.cs.edryshov_ad.elements.IDrawableElement;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
 
-public class InclinedPlank implements DrawElement {
+public class InclinedPlank implements IDrawableElement {
     private final int width;
     private final int height;
 
@@ -16,8 +16,8 @@ public class InclinedPlank implements DrawElement {
 
     private final double inclineAngle;
 
-    private final int projectionX;
-    private final int projectionY;
+    private final double projectionX;
+    private final double projectionY;
 
     public InclinedPlank(int width, int height, int plankWidth, boolean drawAbove, boolean isMirrored, Color color) {
         this.width = width;
@@ -29,15 +29,15 @@ public class InclinedPlank implements DrawElement {
         this.color = color;
 
         inclineAngle = Math.atan(((double) width) / height);
-        projectionY = (int) (plankWidth / Math.sin(inclineAngle));
-        projectionX = (int) (plankWidth / Math.cos(inclineAngle));
+        projectionY = plankWidth / Math.sin(inclineAngle);
+        projectionX = plankWidth / Math.cos(inclineAngle);
     }
 
-    public int getProjectionX() {
+    public double getProjectionX() {
         return projectionX;
     }
 
-    public int getProjectionY() {
+    public double getProjectionY() {
         return projectionY;
     }
 

@@ -1,9 +1,11 @@
 package ru.vsu.cs.edryshov_ad.elements.house.sections;
 
-import ru.vsu.cs.edryshov_ad.elements.DrawElement;
+import ru.vsu.cs.edryshov_ad.elements.IDrawableElement;
 import ru.vsu.cs.edryshov_ad.elements.house.FahverkHouse;
 
-public abstract class Section implements DrawElement {
+import java.awt.*;
+
+public abstract class Section implements IDrawableElement {
     final int width;
     final int height;
 
@@ -24,4 +26,6 @@ public abstract class Section implements DrawElement {
     public int getWidth() {
         return width;
     }
+
+    public abstract void draw(Graphics2D g, int x, int y);
 }

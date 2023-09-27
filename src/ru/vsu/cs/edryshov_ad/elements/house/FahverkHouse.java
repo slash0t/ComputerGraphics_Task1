@@ -1,6 +1,6 @@
 package ru.vsu.cs.edryshov_ad.elements.house;
 
-import ru.vsu.cs.edryshov_ad.elements.DrawElement;
+import ru.vsu.cs.edryshov_ad.elements.IDrawableElement;
 import ru.vsu.cs.edryshov_ad.elements.house.sections.BlankSection;
 import ru.vsu.cs.edryshov_ad.elements.house.sections.DoorSection;
 import ru.vsu.cs.edryshov_ad.elements.house.sections.Section;
@@ -9,9 +9,8 @@ import ru.vsu.cs.edryshov_ad.elements.house.sections.WindowSection;
 import java.awt.*;
 import java.util.Random;
 
-public class FahverkHouse implements DrawElement {
+public class FahverkHouse implements IDrawableElement {
     private final int floorCount;
-    private final int roofFloorHeight;
     private final int sectionCount;
     private final int floorHeight;
     private final int sectionWidth;
@@ -19,18 +18,14 @@ public class FahverkHouse implements DrawElement {
 
     private final int houseNumber;
 
-    private final boolean isRooftopTiled;
-
     private final Color woodColor;
     private final Color windowColor;
     private final Color windowFrameColor;
     private final Color baseColor;
     private final Color roofColor;
 
-    private final Random random;
-
-    private int roofOffsetX;
-    private int roofOffsetY;
+    private final int roofOffsetX;
+    private final int roofOffsetY;
 
     private final Roof roof;
     private final BlankSection blankSectionLeft;
@@ -41,23 +36,16 @@ public class FahverkHouse implements DrawElement {
 
     public FahverkHouse(
             int floorCount, int sectionCount,
-            int floorHeight, int sectionWidth, int plankWidth,
-            int roofFloorHeight, int houseNumber,
-            boolean isRooftopTiled,
+            int floorHeight, int sectionWidth, int plankWidth, int houseNumber,
             Color woodColor, Color windowColor, Color windowFrameColor, Color baseColor, Color roofColor
     ) {
-        this.random = new Random();
-
         this.floorCount = Math.max(2, floorCount);
         this.sectionCount = Math.max(3, sectionCount);
         this.floorHeight = floorHeight;
         this.sectionWidth = sectionWidth;
         this.plankWidth = plankWidth;
 
-        this.roofFloorHeight = roofFloorHeight;
         this.houseNumber = houseNumber;
-
-        this.isRooftopTiled = isRooftopTiled;
 
         this.woodColor = woodColor;
         this.windowColor = windowColor;
@@ -66,9 +54,9 @@ public class FahverkHouse implements DrawElement {
         this.roofColor = roofColor;
 
         this.roofOffsetX = plankWidth * 3 / 2;
-        this.roofOffsetY = plankWidth / 2;
+        this.roofOffsetY = plankWidth;
 
-        this.roof = new Roof(getBaseWidth() + plankWidth * 3, floorHeight * 3 / 2, this);
+        this.roof = new Roof(getBaseWidth() + plankWidth * 3, floorHeight * 4 / 3, this);
 
         this.blankSectionLeft = new BlankSection(sectionWidth, floorHeight, this, BlankSection.LEFT_SIDE);
         this.blankSectionMiddle = new BlankSection(sectionWidth, floorHeight, this, BlankSection.MIDDLE);
@@ -121,12 +109,12 @@ public class FahverkHouse implements DrawElement {
 
     @Override
     public int getWidth() {
-        return roof.getWidth();
+        return getBaseWidth() + getRoofOffsetX() * 2;
     }
 
     @Override
     public int getHeight() {
-        return getBaseHeight() + roof.getHeight() - plankWidth / 2;
+        return getBaseHeight() + roof.getHeight() - roofOffsetY;
     }
 
     public int getBaseWidth() {
@@ -193,32 +181,20 @@ public class FahverkHouse implements DrawElement {
         }
     }
 
-    private void drawOneFlooredRoof(Graphics2D g, int x, int y) {
-
-    }
-
-    private void drawTwoFlooredRoof(Graphics2D g, int x, int y) {
-
-    }
-
     private void drawRoof(Graphics2D g, int x, int y) {
-        roof.draw(g, x - roofOffsetX, y - floorHeight * 3 / 2 + roofOffsetY);
+        roof.draw(g, x - roofOffsetX, y - roof.getHeight() + roofOffsetY);
     }
 
     @Override
     public void draw(Graphics2D g, int x, int y) {
         drawFirstFloor(g, x, y);
 
-        for (int i = 1; i < floorCount - roofFloorHeight; i++) {
+        for (int i = 1; i < floorCount - 1; i++) {
             drawMiddleFloor(g, x, y - (floorHeight + plankWidth) * i);
         }
 
-        int floorY = y - (floorCount - roofFloorHeight) * floorHeight - (floorCount - roofFloorHeight) * plankWidth;
-        if (roofFloorHeight == 1) {
-            drawOneFlooredRoof(g, x, floorY);
-        } else {
-            drawTwoFlooredRoof(g, x, floorY);
-        }
+        int floorY = y - (floorCount - 1) * (floorHeight + plankWidth);
+
         drawRoof(g, x, floorY);
     }
 }

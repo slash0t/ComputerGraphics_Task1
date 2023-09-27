@@ -1,7 +1,7 @@
 package ru.vsu.cs.edryshov_ad.elements.house.sections;
 
 import ru.vsu.cs.edryshov_ad.elements.house.FahverkHouse;
-import ru.vsu.cs.edryshov_ad.utils.Colors;
+import ru.vsu.cs.edryshov_ad.utils.ColorsUtils;
 
 import java.awt.*;
 
@@ -41,7 +41,7 @@ public class DoorSection extends Section {
         int offset = doorWidth / 7;
         int partWidth = (doorWidth - offset * 2 - gapWidth) / 2, partHeight = (doorHeight - offset * 2 - gapWidth) / 2;
 
-        g.setColor(Colors.getDarker(house.getWoodColor()));
+        g.setColor(ColorsUtils.getDarker(house.getWoodColor()));
         for (int i = 0; i < 2; i++) {
             for (int j = 0; j < 2; j++) {
                 g.fillRect(
