@@ -18,10 +18,13 @@ public class LStyledMidSection extends MidBlankSection {
         int belowWindowHeight = height / 4;
         int plankWidth = house.getPlankWidth();
 
+        Color old = g.getColor();
         g.setColor(house.getWoodColor());
         g.fillRect(x, y + (height - belowWindowHeight) - plankWidth, width, plankWidth);
 
         int abovePlank = height / 8;
         g.fillRect(x, y + abovePlank, width, plankWidth);
+
+        g.setColor(old);
     }
 }

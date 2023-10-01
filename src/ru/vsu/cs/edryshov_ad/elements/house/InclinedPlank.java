@@ -24,7 +24,7 @@ public class InclinedPlank extends InBoxElement {
 
         this.color = color;
 
-        inclineAngle = Math.atan(((double) width) / height);
+        inclineAngle = Math.atan(width / (double) height);
         projectionY = plankWidth / Math.sin(inclineAngle);
         projectionX = plankWidth / Math.cos(inclineAngle);
     }
@@ -39,16 +39,6 @@ public class InclinedPlank extends InBoxElement {
 
     public double getInclineAngle() {
         return inclineAngle;
-    }
-
-    @Override
-    public int getWidth() {
-        return width;
-    }
-
-    @Override
-    public int getHeight() {
-        return height;
     }
 
     @Override

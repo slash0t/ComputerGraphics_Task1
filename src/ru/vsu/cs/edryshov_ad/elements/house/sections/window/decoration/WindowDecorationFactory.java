@@ -7,6 +7,10 @@ public class WindowDecorationFactory {
         switch (type) {
             case V_STYLED:
                 return new WindowVStyledDecoration(width, height, house);
+            case VERTICAL:
+                return new WindowVerticalDecoration(width, height, house);
+            case CROSS:
+                return new WindowCrossDecoration(width, height, house);
             default:
                 return null;
         }
