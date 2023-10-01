@@ -1,13 +1,15 @@
 package ru.vsu.cs.edryshov_ad.elements.house;
 
 import ru.vsu.cs.edryshov_ad.elements.IDrawableElement;
-import ru.vsu.cs.edryshov_ad.elements.house.sections.BlankSection;
-import ru.vsu.cs.edryshov_ad.elements.house.sections.DoorSection;
+import ru.vsu.cs.edryshov_ad.elements.house.roof.Roof;
 import ru.vsu.cs.edryshov_ad.elements.house.sections.Section;
-import ru.vsu.cs.edryshov_ad.elements.house.sections.WindowSection;
+import ru.vsu.cs.edryshov_ad.elements.house.sections.blank.IBlankSectionFactory;
+import ru.vsu.cs.edryshov_ad.elements.house.sections.window.WindowSection;
+import ru.vsu.cs.edryshov_ad.elements.house.sections.window.decoration.WindowDecorationFactory;
+import ru.vsu.cs.edryshov_ad.elements.house.sections.window.frame.WindowFrameFactory;
+
 
 import java.awt.*;
-import java.util.Random;
 
 public class FahverkHouse implements IDrawableElement {
     private final int floorCount;
@@ -28,19 +30,16 @@ public class FahverkHouse implements IDrawableElement {
     private final int roofOffsetY;
 
     private final Roof roof;
-    private final BlankSection blankSectionLeft;
-    private final BlankSection blankSectionRight;
-    private final BlankSection blankSectionMiddle;
-    private final DoorSection doorSection;
-    private final WindowSection windowSection;
+    private final Section[][] sections;
 
     public FahverkHouse(
             int floorCount, int sectionCount,
             int floorHeight, int sectionWidth, int plankWidth, int houseNumber,
-            Color woodColor, Color windowColor, Color windowFrameColor, Color baseColor, Color roofColor
+            Color woodColor, Color windowColor, Color windowFrameColor, Color baseColor, Color roofColor,
+            HouseConfiguration configuration, HouseFactory factory
     ) {
-        this.floorCount = Math.max(2, floorCount);
-        this.sectionCount = Math.max(3, sectionCount);
+        this.floorCount = floorCount;
+        this.sectionCount = sectionCount;
         this.floorHeight = floorHeight;
         this.sectionWidth = sectionWidth;
         this.plankWidth = plankWidth;
@@ -56,15 +55,49 @@ public class FahverkHouse implements IDrawableElement {
         this.roofOffsetX = plankWidth * 3 / 2;
         this.roofOffsetY = plankWidth;
 
-        this.roof = new Roof(getBaseWidth() + plankWidth * 3, floorHeight * 4 / 3, this);
+        this.roof = factory.getRoofFactory().createRoof(
+                configuration.getRoofType(),
+                this
+        );
 
-        this.blankSectionLeft = new BlankSection(sectionWidth, floorHeight, this, BlankSection.LEFT_SIDE);
-        this.blankSectionMiddle = new BlankSection(sectionWidth, floorHeight, this, BlankSection.MIDDLE);
-        this.blankSectionRight = new BlankSection(sectionWidth, floorHeight, this, BlankSection.RIGHT_SIDE);
+        this.sections = createSectionsMatrix(configuration, factory);
+    }
 
-        this.doorSection = new DoorSection(sectionWidth, floorHeight, this);
+    private Section[][] createSectionsMatrix(HouseConfiguration configuration, HouseFactory factory) {
+        Section[][] sections = new Section[floorCount][sectionCount];
 
-        this.windowSection =  new WindowSection(sectionWidth, floorHeight, this, 1);
+        sections[0][0] = factory.getDoorFactory().createDoor(configuration.getDoorType(), this);
+
+        fillSectionArray(sections[0], 1, sectionCount, configuration, factory);
+        for (int i = 1; i < floorCount; i++) {
+            fillSectionArray(sections[i], 0, sectionCount, configuration, factory);
+        }
+        return sections;
+    }
+
+    private void fillSectionArray(Section[] sections, int start, int end, HouseConfiguration configuration, HouseFactory factory) {
+        IBlankSectionFactory blankFactory = factory.getBlankSuperFactory().createBlankSectionFactory(
+                configuration.getBlankSectionType()
+        );
+        sections[start] = blankFactory.createSideBlankSection(this, true);
+
+        WindowFrameFactory frameFactory = factory.getFrameFactory();
+        WindowDecorationFactory decorationFactory = factory.getDecorationFactory();
+
+        for (int i = 0; i + start + 1 < end - 1; i++) {
+            Section section;
+            if ((end - start) % 2 == 1 && i % 2 == 1) {
+                section = blankFactory.createMidBlankSection(this);
+            } else {
+                section = new WindowSection(
+                        this,
+                        frameFactory, decorationFactory,
+                        configuration.getFrameType(), configuration.getDecorationType()
+                );
+            }
+            sections[i + start + 1] = section;
+        }
+        sections[end - 1] = blankFactory.createSideBlankSection(this, false);
     }
 
     public int getPlankWidth() {
@@ -81,6 +114,10 @@ public class FahverkHouse implements IDrawableElement {
 
     public int getFloorHeight() {
         return floorHeight;
+    }
+
+    public int getSectionWidth() {
+        return sectionWidth;
     }
 
     public Color getWoodColor() {
@@ -109,7 +146,7 @@ public class FahverkHouse implements IDrawableElement {
 
     @Override
     public int getWidth() {
-        return getBaseWidth() + getRoofOffsetX() * 2;
+        return getBaseWidth() + roofOffsetX * 2;
     }
 
     @Override
@@ -122,79 +159,29 @@ public class FahverkHouse implements IDrawableElement {
     }
 
     public int getBaseHeight() {
-        return floorHeight * floorCount + plankWidth * (floorCount - 1);
-    }
-
-    private void drawFirstFloor(Graphics2D g, int x, int y) {
-        Color old = g.getColor();
-
-        fillFloor(g, x, y);
-
-        doorSection.draw(g, x + plankWidth, y - floorHeight);
-
-        drawWindowedSectionLine(g, x + plankWidth + sectionWidth, y, sectionCount - 1, sectionCount >= 4);
-
-        g.setColor(old);
-    }
-
-    private void drawMiddleFloor(Graphics2D g, int x, int y) {
-        Color old = g.getColor();
-
-        fillFloor(g, x, y);
-
-        drawWindowedSectionLine(g, x, y, sectionCount, true);
-
-        g.setColor(old);
-    }
-
-    private void fillFloor(Graphics2D g, int x, int y) {
-        g.setColor(woodColor);
-
-        int height = floorHeight + plankWidth;
-        int width = sectionWidth * sectionCount + (sectionCount + 1) * plankWidth;
-        g.fillRect(x, y - height, width, height);
-    }
-
-    private void drawWindowedSectionLine(Graphics2D g, int x, int y, int count, boolean withWindows) {
-        if (!withWindows) {
-            for (int i = 0; i < count; i++) {
-                int currX = x + plankWidth + (plankWidth + sectionWidth) * i;
-                blankSectionMiddle.draw(g, currX, y - floorHeight);
-            }
-        } else {
-            blankSectionLeft.draw(g, x + plankWidth, y - floorHeight);
-
-            for (int i = 1; i < count - 1; i++) {
-                int currX = x + plankWidth + (plankWidth + sectionWidth) * i;
-
-                Section section;
-                if (count % 2 == 1 && i % 2 == 0) {
-                    section = blankSectionMiddle;
-                } else {
-                    section = windowSection;
-                }
-
-                section.draw(g, currX, y - floorHeight);
-            }
-
-            blankSectionRight.draw(g, x + plankWidth + (plankWidth + sectionWidth) * (count - 1), y - floorHeight);
-        }
-    }
-
-    private void drawRoof(Graphics2D g, int x, int y) {
-        roof.draw(g, x - roofOffsetX, y - roof.getHeight() + roofOffsetY);
+        return (floorHeight + plankWidth) * floorCount;
     }
 
     @Override
     public void draw(Graphics2D g, int x, int y) {
-        drawFirstFloor(g, x, y);
+        Color old = g.getColor();
 
-        for (int i = 1; i < floorCount - 1; i++) {
-            drawMiddleFloor(g, x, y - (floorHeight + plankWidth) * i);
+        int baseHeight = getBaseHeight();
+
+        g.setColor(woodColor);
+        g.fillRect(x, y - baseHeight, getBaseWidth(), baseHeight);
+
+        for (int i = 0; i < sectionCount; i++) {
+            for (int j = 0; j < floorCount; j++) {
+                int currX = x + plankWidth + (plankWidth + sectionWidth) * i;
+                int currY = y - floorHeight - (floorHeight + plankWidth) * j;
+
+                sections[j][i].draw(g, currX, currY);
+            }
         }
 
-        int floorY = y - (floorCount - 1) * (floorHeight + plankWidth);
+        roof.draw(g, x - roofOffsetX, y - roof.getHeight() + roofOffsetY - baseHeight);
 
-        drawRoof(g, x, floorY);
+        g.setColor(old);
     }
 }

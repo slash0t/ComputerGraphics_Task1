@@ -1,31 +1,23 @@
-package ru.vsu.cs.edryshov_ad.elements.house.sections;
+package ru.vsu.cs.edryshov_ad.elements.house.sections.door;
 
 import ru.vsu.cs.edryshov_ad.elements.house.FahverkHouse;
 import ru.vsu.cs.edryshov_ad.utils.ColorsUtils;
 
 import java.awt.*;
 
-public class DoorSection extends Section {
-    private Font font;
+public class SolidDoor extends DoorSection {
 
-    public DoorSection(int width, int height, FahverkHouse house) {
-        super(width, height, house);
-
-        this.font = new Font("Book Antiqua", Font.PLAIN, house.getPlankWidth() * 3 / 2);
+    public SolidDoor(FahverkHouse house) {
+        super(house);
     }
 
     @Override
     public void draw(Graphics2D g, int x, int y) {
-        Color old = g.getColor();
-        g.setColor(house.getBaseColor());
+        super.draw(g, x, y);
 
-        g.fillRect(x, y, width, height);
+        Color old = g.getColor();
 
         drawDoor(g, x, y);
-
-        int doorHeight = height * 4 / 5;
-
-        drawHouseNumberSign(g, x, y, height - doorHeight);
 
         g.setColor(old);
     }
@@ -61,33 +53,5 @@ public class DoorSection extends Section {
                 doorHandleSize,
                 doorHandleSize
         );
-    }
-
-    public void drawHouseNumberSign(Graphics2D g, int x, int y, int height) {
-        g.setColor(house.getWoodColor());
-        g.fillRect(x, y + height / 2 - house.getPlankWidth() / 2, width, house.getPlankWidth());
-
-        Font old = g.getFont();
-        g.setFont(font);
-
-        String houseNumber = Integer.toString(house.getHouseNumber());
-
-        FontMetrics metrics = g.getFontMetrics();
-        int stringWidth = metrics.stringWidth(houseNumber), stringHeight = metrics.getHeight();
-
-        int signWidth = (stringWidth * 5 / 4), signHeight = (stringHeight * 5 / 4);
-        signWidth = Math.max(signWidth, house.getPlankWidth() * 3);
-
-        g.setColor(house.getWoodColor());
-        g.fillRect(x + width / 2 - signWidth / 2, y + height / 2 - signHeight / 2, signWidth, signHeight);
-
-        g.setColor(house.getWindowFrameColor());
-        g.drawString(
-                houseNumber,
-                x + width / 2 - stringWidth / 2,
-                y + height / 2 + signHeight / 4
-        );
-
-        g.setFont(old);
     }
 }

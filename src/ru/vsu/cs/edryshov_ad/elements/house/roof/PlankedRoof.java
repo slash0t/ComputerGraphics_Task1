@@ -1,16 +1,12 @@
-package ru.vsu.cs.edryshov_ad.elements.house;
+package ru.vsu.cs.edryshov_ad.elements.house.roof;
 
-import ru.vsu.cs.edryshov_ad.elements.IDrawableElement;
+import ru.vsu.cs.edryshov_ad.elements.house.FahverkHouse;
+import ru.vsu.cs.edryshov_ad.elements.house.InclinedPlank;
 
 import java.awt.*;
 import java.awt.geom.GeneralPath;
 
-public class Roof implements IDrawableElement {
-    private final int width;
-    private final int height;
-
-    private final FahverkHouse house;
-
+public class PlankedRoof extends Roof {
     private final double offsetInnerPlanks;
 
     private final InclinedPlank roofPlank1;
@@ -25,10 +21,8 @@ public class Roof implements IDrawableElement {
     private final int horizontalPlankPlacement;
     private final int plankWidth;
 
-    public Roof(int width, int height, FahverkHouse house) {
-        this.width = width;
-        this.height = height;
-        this.house = house;
+    public PlankedRoof(FahverkHouse house) {
+        super(house);
 
         int roofWidth = house.getPlankWidth() * 2;
 
@@ -69,7 +63,7 @@ public class Roof implements IDrawableElement {
                 house.getWoodColor()
         );
 
-        this.horizontalPlankPlacement = height * 5 / 14;
+        this.horizontalPlankPlacement = (int) (height - roofPlank1.getProjectionY() - innerRoofPlank1.getProjectionY()) * 3 / 7;
 
         double xLeft = getXOnInnerPlank(horizontalPlankPlacement, true);
         double xRight = getXOnInnerPlank(horizontalPlankPlacement, false);
@@ -89,16 +83,6 @@ public class Roof implements IDrawableElement {
                 false,
                 house.getWoodColor()
         );
-    }
-
-    @Override
-    public int getWidth() {
-        return width;
-    }
-
-    @Override
-    public int getHeight() {
-        return height;
     }
 
     @Override
@@ -178,10 +162,17 @@ public class Roof implements IDrawableElement {
     private void drawSmallestPlank(Graphics2D g, double x, double y, double plankStart, boolean isLeftSided) {
         GeneralPath path = new GeneralPath();
 
-        double x0 = plankStart + (isLeftSided ? -smallPlank1.getProjectionX() : smallPlank2.getProjectionX());
-        double y0 = y + height - house.getRoofOffsetY() ;
-        double angle1 = isLeftSided ? Math.PI - smallPlank1.getInclineAngle() :  smallPlank2.getInclineAngle();
-        double angle2 = isLeftSided ? innerRoofPlank1.getInclineAngle() : Math.PI - innerRoofPlank2.getInclineAngle();
+        double y0 = y + height - house.getRoofOffsetY();
+        double x0, angle1, angle2;
+        if (isLeftSided) {
+            x0 = plankStart - smallPlank1.getProjectionX();
+            angle1 = Math.PI - smallPlank1.getInclineAngle();
+            angle2 = innerRoofPlank1.getInclineAngle();
+        } else {
+            x0 = plankStart + smallPlank2.getProjectionX();
+            angle1 = smallPlank2.getInclineAngle();
+            angle2 = Math.PI - innerRoofPlank2.getInclineAngle();
+        }
 
         path.moveTo(x0, y0);
         path.lineTo(plankStart, y0);
@@ -194,7 +185,6 @@ public class Roof implements IDrawableElement {
         double intersection2Y = (intersection2X - x) / Math.tan(angle2);
         path.lineTo(intersection2X, y0 - intersection2Y);
 
-//        g.setColor(Color.RED);
         g.fill(path);
     }
 
